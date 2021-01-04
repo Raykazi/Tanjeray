@@ -2768,6 +2768,10 @@ let Creep_Roles = {
 				creep.memory.task = creep.memory.task || creep.getTask_Deposit_Storage("mineral");
 				creep.memory.task = creep.memory.task || creep.getTask_Deposit_Storage("energy");
 				creep.memory.task = creep.memory.task || creep.getTask_Deposit_Container("energy");
+				if (creep.memory.role == "miner"){
+					creep.memory.task = creep.memory.task || creep.getTask_Build();
+					creep.memory.task = creep.memory.task || creep.getTask_Upgrade(false);
+				}
 				creep.memory.task = creep.memory.task || creep.getTask_Wait(10);
 
 				creep.runTask(creep);
