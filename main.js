@@ -283,7 +283,11 @@ Creep.prototype.runTask = function runTask() {
 			} else if (result != OK) {
 				delete this.memory.task;
 				return;
-			} else { return; }
+			} else {
+				_.set(Memory, ["hive", "signs", this.room.name], message);
+				delete this.room.memory.sip;				
+				return; 
+			}
 		}
 
 		case "repair": {
@@ -657,32 +661,26 @@ Creep.prototype.getTask_Upgrade = function getTask_Upgrade(only_critical) {
 Creep.prototype.getTask_Sign = function getTask_Sign() {
 	if (!_.get(this.room, "controller", false))
 		return;
-
+	
 	// Signs set by Screeps devs can't be changed- will report OK (0) but will fail to change
 	if (_.get(this.room, ["controller", "sign", "username"]) == "Screeps")
 		return;
 
+	let messages = [
+	   'There Goes The Neighborhood','Daquan Projects', 'The Hood Is Here Yall','Hide Ya Screeps, Hide Ya Wife','Skrt, Skrt'
+	];
+	
 	let sign_room = _.get(Memory, ["hive", "signs", this.room.name]);
-	let sign_default = _.get(Memory, ["hive", "signs", "default"]);
+	if(sign_room != undefined) return;
+	let sign_message = _.sample(messages);
+	let sign_in_progress = _.get(Memory, ["rooms", this.room.name, "sip"]);		
 	let is_safe = _.get(Memory, ["rooms", this.room.name, "defense", "is_safe"]);
-	let room_sign = _.get(this.room, ["controller", "sign", "text"]);
-
-	// Set for blank sign (empty string) and room sign is blank (undefined)
-	if ((sign_room == null && sign_default == "" && room_sign == undefined)
-		|| (sign_room == "" && room_sign == undefined))
-		return;
-
-	if (is_safe && sign_room != null && room_sign != sign_room) {
+	let room_sign = _.get(this.room, ["controller", "sign", "text"]);	
+	if (is_safe && sign_in_progress == undefined && sign_room == undefined && _.indexOf(messages, room_sign, 0) == -1) {
+		_.set(Memory, ["rooms", this.room.name, "sip"], true);
 		return {
 			type: "sign",
-			message: sign_room,
-			id: this.room.controller.id,
-			timer: 60
-		};
-	} else if (is_safe && sign_room == null && sign_default != null && room_sign != sign_default) {
-		return {
-			type: "sign",
-			message: sign_default,
+			message: sign_message,
 			id: this.room.controller.id,
 			timer: 60
 		};
