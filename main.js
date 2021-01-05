@@ -620,15 +620,32 @@ Creep.prototype.getTask_Pickup = function getTask_Pickup(resource) {
 		};
 	}
 
-	let ruin = _.head(_.sortBy(_.filter(this.room.find(FIND_RUINS),
-		p => { return _.some(_.get(p, "store", null), p => { return p > carry_amount; }); }),
+	let ruins = _.head(_.sortBy(_.filter(this.room.find(FIND_RUINS),
+		p => { return _.some(_.get(p, "store", null), p => { return p > carry_amount && p.resourceType == "energy"; }); }),
 		p => { return -this.pos.getRangeTo(p.pos); }));
-
-	if(ruin != null) {
+	let ruins = null;
+	this.say(resource);
+	// if (resource == null || resource != "energy") {
+		// ruins = _.head(this.room.find(FIND_RUINS, {
+		// filter: function(r)
+		// {
+			// return r.resourceType == "mineral";
+		// }
+		// }));
+	// }
+	 if (resource == null || resource == "energy") {
+		ruins = _.head(this.room.find(FIND_RUINS, {
+		filter: function(r)
+		{
+			return r.store[RESOURCE_ENERGY] > 0;
+		}
+		}));		 
+	 }
+	if(ruins != null) {
 		return {
 			type: "withdraw",
-			resource: _.head(_.filter(_.keys(ruin.store), q => { return ruin.store[q] > carry_amount; })),
-			id: ruin.id,
+			resource: _.head(_.filter(_.keys(ruins.store), q => { return ruins.store[q] > 0; })),
+			id: ruins.id,
 			timer: 50	/*ruin sites from suicides seem to have long tick times,
 						 sometimes 30k+.. just set to maxRoomLength */
 		};
