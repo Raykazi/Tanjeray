@@ -563,7 +563,26 @@ Creep.prototype.getTask_Deposit_Spawns = function getTask_Deposit_Spawns() {
 		};
 	}
 };
-
+Creep.prototype.getTask_Salvage = function getTask_Pickup(resource) {
+	if (!_.get(Memory, ["rooms", this.room.name, "defense", "is_safe"]))
+		return;
+		let ruins = null;
+	if (resource == null || resource != "energy") {
+		ruins = _.head(this.room.find(FIND_RUINS, { filter: function(r){ return _.head(_.filter(_.keys(r.store), q => { return r.store[q] > 0 && q != "energy"; }))}}));
+	}
+	if (resource == null || resource == "energy") {
+		ruins = _.head(this.room.find(FIND_RUINS, {	filter: function(r){ return r.store[RESOURCE_ENERGY] > 0; }	}));		 
+	}
+	if(ruins != null) {
+		return {
+			type: "withdraw",
+			resource: _.head(_.filter(_.keys(ruins.store), q => { return ruins.store[q] > 0; })),
+			id: ruins.id,
+			timer: 50	/*ruin sites from suicides seem to have long tick times,
+						 sometimes 30k+.. just set to maxRoomLength */
+		};
+	}
+}
 Creep.prototype.getTask_Pickup = function getTask_Pickup(resource) {
 	if (!_.get(Memory, ["rooms", this.room.name, "defense", "is_safe"]))
 		return;
@@ -2713,7 +2732,71 @@ let Creep_Roles = {
 			return;
 		}
 	},
+	Salvaging: function (creep, isSafe)
+	{
+		let hostile = isSafe ? null
+			: _.head(creep.pos.findInRange(FIND_HOSTILE_CREEPS, 6, {
+				filter:
+					c => { return c.isHostile(); }
+			}));
+		if (hostile == null) {
+			if (creep.memory.state == "refueling") {
+				if (creep.memory.role == "salvager" && creep.carryCapacity > 0
+					&& _.sum(creep.carry) == creep.carryCapacity) {
+					creep.memory.state = "delivering";
+					delete creep.memory.task;
+					return;
+				}
 
+				creep.memory.task = creep.memory.task || creep.getTask_Boost();
+
+				if (!creep.memory.task && this.goToRoom(creep, creep.memory.room, true))
+					return;
+
+				if (creep.memory.role == "salvager") {
+					creep.memory.task = creep.memory.task || creep.getTask_Salvage("mineral");
+					creep.memory.task = creep.memory.task || creep.getTask_Salvage("energy");
+					creep.memory.task = creep.memory.task || creep.getTask_Wait(10);
+				} 
+				creep.runTask(creep);
+				return;
+			} else if (creep.memory.state == "delivering") {
+				if (creep.carryCapacity == 0 || _.sum(creep.carry) == 0) {
+					creep.memory.state = "refueling";
+					delete creep.memory.task;
+					return;
+				}
+
+				if (this.goToRoom(creep, creep.memory.colony, false))
+					return;
+				if(_.head(_.filter(_.keys(creep.store), q=> { return q == "energy"; })))
+				{
+					if (creep.room.energyAvailable < creep.room.energyCapacityAvailable * 0.75) {
+						creep.memory.task = creep.memory.task || creep.getTask_Deposit_Spawns();
+						creep.memory.task = creep.memory.task || creep.getTask_Deposit_Towers();
+					} else {
+						creep.memory.task = creep.memory.task || creep.getTask_Deposit_Towers();
+						creep.memory.task = creep.memory.task || creep.getTask_Deposit_Spawns();
+					}
+					creep.memory.task = creep.memory.task || creep.getTask_Deposit_Link();
+					creep.memory.task = creep.memory.task || creep.getTask_Deposit_Storage("energy");
+					creep.memory.task = creep.memory.task || creep.getTask_Deposit_Container("energy");
+				} else
+				{
+					creep.memory.task = creep.memory.task || creep.getTask_Deposit_Storage("mineral");
+				}
+				creep.memory.task = creep.memory.task || creep.getTask_Wait(10);
+				creep.runTask(creep);
+				return;
+			} else {
+				creep.memory.state = "refueling";
+				return;
+			} 
+		} else if (hostile != null) {
+			creep.moveFrom(creep, hostile);
+			return;
+		}
+	},
 	Mining: function (creep, isSafe) {
 		let hostile = isSafe ? null
 			: _.head(creep.pos.findInRange(FIND_HOSTILE_CREEPS, 6, {
@@ -4182,6 +4265,16 @@ let Sites = {
 							name: null, args: { role: "carrier", room: rmHarvest, colony: rmColony }
 						});
 					}
+					if (_.get(popActual, "salvager", 0) < _.get(popTarget, ["salvager", "amount"], 0)) {
+						Memory["hive"]["spawn_requests"].push({
+							room: rmColony, listRooms: listSpawnRooms,
+							priority: (rmColony == rmHarvest ? 13 : 16),
+							level: _.get(popTarget, ["carrier", "level"], 1),
+							scale: _.get(popTarget, ["carrier", "scale"], true),
+							body: _.get(popTarget, ["carrier", "body"], "carrier"),
+							name: null, args: { role: "salvager", room: rmHarvest, colony: rmColony }
+						});
+					}
 
 					if (_.get(popActual, "miner", 0) < 2 // Population stalling? Energy defecit? Replenish with miner group
 						&& (_.get(popActual, "burrower", 0) < _.get(popTarget, ["burrower", "amount"], 0)
@@ -4262,6 +4355,9 @@ let Sites = {
 
 						case "miner": case "burrower": case "carrier":
 							Creep_Roles.Mining(creep, is_safe);
+							break;
+						case "salvager":
+							Creep_Roles.Salvaging(creep, is_safe);
 							break;
 
 						case "dredger":
