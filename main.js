@@ -6424,6 +6424,8 @@ let Blueprint = {
 				continue;
 
 			if (structureType == STRUCTURE_ROAD) {
+				if (_.get(Memory, ["rooms", room.name, "layout", "place_roads"], true) == false)
+					continue;
 				let lookTerrain = room.lookForAt("terrain", x, y);
 				if (lookTerrain == "wall")
 					continue;
@@ -7115,6 +7117,16 @@ let Console = {
 				_.set(Memory, ["rooms", rmName, "layout", "place_defenses"], true)
 
 			return `<font color=\"#D3FFA3\">[Console]</font> Blueprint placing defensive walls and ramparts: ${_.get(Memory, ["rooms", rmName, "layout", "place_defenses"], true)}`;
+		};
+		
+		help_blueprint.push("blueprint.toggle_roads(rmName)");
+		blueprint.toggle_roads = function (rmName) {
+			if (_.get(Memory, ["rooms", rmName, "layout", "place_roads"], false) == true)
+				_.set(Memory, ["rooms", rmName, "layout", "place_roads"], false)
+			else
+				_.set(Memory, ["rooms", rmName, "layout", "place_roads"], true)
+
+			return `<font color=\"#D3FFA3\">[Console]</font> Blueprint placing roads: ${_.get(Memory, ["rooms", rmName, "layout", "place_roads"], true)}`;
 		};
 
 
