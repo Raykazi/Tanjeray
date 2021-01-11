@@ -1762,7 +1762,7 @@ Population_Combat__Occupy = {
 };
 
 Population_Combat__Dismantle = {
-	dismantler: { amount: 3 }
+	dismantler: { amount: 5 }
 };
 
 Population_Combat__Tower_Drain = {
@@ -2415,8 +2415,32 @@ let Creep_Body = {
 
 	getBody_Dismantler: function (level) {
 		switch (level) {
-			default:
-				return this.getBody_Burrower_AT(level);
+			case 1:
+				return [ // 300 energy, 2x WORK, 2x MOVE
+					WORK, MOVE, WORK, MOVE];
+			case 2:
+				return [ // 450 energy, 3x WORK, 3x MOVE
+					WORK, MOVE, WORK, MOVE, WORK, MOVE];
+			case 3:
+				return [ // 600 energy, 4x WORK, 4x MOVE
+					WORK, WORK, WORK, WORK,
+					MOVE, MOVE, MOVE, MOVE];
+			case 4:
+				return [ // 1150 energy, 8x WORK, 8x MOVE
+					WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK,
+					MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+			case 5:
+				return [ // 1600 energy, 11x WORK, 11x MOVE
+					WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK,
+					WORK,
+					MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
+					MOVE];
+			case 6:
+				return [ // 2050 energy, 14x WORK, 14x MOVE
+					WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK,
+					WORK, WORK, WORK, WORK,
+					MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
+					MOVE, MOVE, MOVE, MOVE];
 			case 7: case 8:
 				return [ // 3100 energy, 10x TOUGH, 20x WORK, 20x MOVE
 					TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH,
