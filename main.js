@@ -1289,6 +1289,46 @@ Room.prototype.getLevel = function getLevel() {
 		return _.filter(this.find(FIND_SOURCES),
 			s => { return !s.pos.isAvoided() && (checkEnergy == true ? s.energy > 0 : true) });
 	}
+	Room.prototype.findAllStructures=function()
+	{
+		if(!this._structures)
+		{
+			this._structures = {};
+			Object.keys(CONSTRUCTION_COST).forEach((s) => this._structures[s] = [])
+			this._structures[STRUCTURE_CONTROLLER] = []
+			this._structures[STRUCTURE_INVADER_CORE] = []
+			this._structures[STRUCTURE_POWER_BANK] = []
+			this._structures[STRUCTURE_KEEPER_LAIR] = []
+			this._structures[STRUCTURE_PORTAL] = []
+			
+			this.find(FIND_STRUCTURES).forEach((s) => {
+					this._structures[s.structureType].push(s)
+			})
+		}
+	}
+	Room.prototype.Structures=function(type)
+	{
+		this.findAllStructures();
+		return this._structures[type];
+	}
+	Room.prototype.PopulateShorthands=function()
+	{
+		this.findAllStructures();
+		let ShorthandFirstOfType    =   function(type,room,alias) { if(room._structures[type] && room._structures[type].length > 0) {room[alias] = room._structures[type][0]} }
+		let ShorthandType           =   function(type,room,alias) { room[alias] = room._structures[type] }
+		ShorthandFirstOfType(STRUCTURE_FACTORY,this,"factory");
+		ShorthandFirstOfType(STRUCTURE_NUKER,this,"nuker");
+		ShorthandFirstOfType(STRUCTURE_OBSERVER,this,"observer");
+		ShorthandFirstOfType(STRUCTURE_EXTRACTOR,this,"extractor");
+		ShorthandFirstOfType(STRUCTURE_INVADER_CORE,this,"invaderCore");
+		ShorthandFirstOfType(STRUCTURE_POWER_BANK,this,"powerBank");
+		ShorthandFirstOfType(STRUCTURE_POWER_SPAWN,this,"powerSpawn");
+		ShorthandType(STRUCTURE_CONTAINER,this,"containers");
+		ShorthandType(STRUCTURE_ROAD,this,"roads");
+		ShorthandType(STRUCTURE_TOWER,this,"towers");
+		ShorthandType(STRUCTURE_SPAWN,this,"spawns");
+		ShorthandType(STRUCTURE_PORTAL,this,"portals");
+	}
 
 
 
