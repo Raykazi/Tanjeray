@@ -33,11 +33,10 @@
  * *********************************************************** */
 
 
-
+var Traveler = require('traveler');
 /* ***********************************************************
  *	[sec01a] GENERAL OVERLOADS
  * *********************************************************** */
-
 {	/* Constants */
 
 	// Defensive alert states
@@ -860,6 +859,21 @@ Creep.prototype.getTask_Wait = function getTask_Wait(ticks) {
  * *********************************************************** */
 
 Creep.prototype.travel = function travel(dest, ignore_creeps) {
+	//let range = null;
+	//let priority = null;
+	//let task = _.get(this, ["memory", "task", "type"]);
+	//switch (task) {
+	//	case "upgrade":
+	//	case "repair":
+	//	case "build":
+	//		range = 2;
+	//		break;
+	//	default:
+	//		range = 1;
+	//		break;
+	//}
+	//return this.Move(dest, null, null, { ignoreCreeps: ignore_creeps });
+
 	if (this.fatigue > 0)
 		return ERR_TIRED;
 
