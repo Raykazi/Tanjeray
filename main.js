@@ -6356,11 +6356,11 @@ let Blueprint = {
 		sites = Blueprint.iterateStructure(room, sites, structures, layout, origin, sites_per_room, blocked_areas, "extension");
 
 		if (level >= 3) {
-			// Iterate sources, create two containers adjacent to each source
+			// Iterate sources, create one container adjacent to each source
 			if (sites < sites_per_room) {
 				let containers = _.filter(all_structures, s => { return s.structureType == "container"; });
 				_.each(sources, source => {
-					if (sites < sites_per_room && source.pos.findInRange(containers, 1).length < 2) {
+					if (sites < sites_per_room && source.pos.findInRange(containers, 1).length < 1) {
 						let adj = source.pos.getBuildableTile_Adjacent();
 						if (adj != null && adj.createConstructionSite("container") == OK) {
 							console.log(`<font color=\"#6065FF\">[Blueprint]</font> ${room.name} placing container at (${adj.x}, ${adj.y})`);
@@ -6406,7 +6406,7 @@ let Blueprint = {
 				for (let i = 0; i < (level == 5 ? 1 : sources.length); i++) {
 					let source = sources[i];
 					if (sites < sites_per_room && source.pos.findInRange(links, 2).length == 0) {
-						let adj = source.pos.getOpenTile_Path(2);
+						let adj = source.pos.getOpenTile_Path(1);
 						if (adj != null && adj.createConstructionSite("link") == OK) {
 							console.log(`<font color=\"#6065FF\">[Blueprint]</font> ${room.name} placing link at (${adj.x}, ${adj.y})`);
 							sites += 1;
